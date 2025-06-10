@@ -20,7 +20,7 @@
       get_url:
         url: "{{ kafka_download_url }}"
         dest: /tmp/{{ kafka_archive_name }}
-        checksum: "sha512:00722ab0a6b954e0006994b8d589dcd8f26e1827c47f70b6e820fb45aa35945c19163b0f188caf0caf976c11f7ab005fd368c54e5851e899d2de687a804a5eb9"  # Added checksum for>
+        checksum: "sha512:00722ab0a6b954e0006994b8d589dcd8f26e1827c47f70b6e820fb45aa35945c19163b0f188caf0caf976c11f7ab005fd368c54e5851e899d2de687a804a5eb9"  # Added checksum for
 
     - name: Extract Kafka archive
       unarchive:
@@ -35,3 +35,18 @@
       file:
         path: /tmp/{{ kafka_archive_name }}
         state: absent
+
+    - name: Install tree command if not present
+      apt:
+        name: tree
+        state: present
+      when: ansible_pkg_mgr == 'apt'
+
+    - name: Display Kafka directory structure using tree
+      command: tree -L 2 {{ kafka_install_dir }}
+      register: tree_output
+      changed_when: false
+
+    - name: Print tree output
+      debug:
+        var: tree_output.stdout_lines
