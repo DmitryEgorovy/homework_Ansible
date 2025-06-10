@@ -1,0 +1,35 @@
+--
+- name: Change MOTD with dynamic information
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Get IP address
+      setup:
+        filter: ansible_default_ipv4
+      delegate_to: localhost  # Get IP of the managed host, not the controller
+      run_once: true
+      register: ip_address_info
+
+    - name: Get hostname
+      shell: hostname
+      register: hostname_output
+      delegate_to: localhost
+      run_once: true
+
+    - name: Set MOTD content
+      copy:
+        dest: /etc/motd
+        content: |
+         
+                                                 
+                  Welcome sisadmin!        
+                                                 
+          Hostname: {{ hostname_output.stdout }}
+          IP Address: {{ ip_address_info.ansible_facts.ansible_default_ipv4.address }}
+          Have a nice day, System Administrator!
+          This system is managed by Ansible.
+          Please be careful!
+        owner: root
+        group: root
+        mode: '0644'
