@@ -1,0 +1,42 @@
+---
+- name: Install Apache
+  apt:
+    name: apache2
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+  
+- name: Install Apache (RedHat)
+  yum:
+    name: httpd
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: Configure firewall
+  firewalld:
+    service: http
+    state: enabled
+    permanent: yes
+    immediate: yes
+  when: ansible_os_family == 'RedHat'
+
+- name: Generate index.html from template
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure Apache is running and enabled
+  service:
+    name: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
+    state: started
+    enabled: yes
+
+- name: Check website availability
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}"
+    return_content: yes
+    status_code: 200
+  register: webpage
